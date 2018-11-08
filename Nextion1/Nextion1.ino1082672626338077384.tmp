@@ -1,0 +1,127 @@
+#include "Nextion.h"
+
+void setup() {
+  Serial.begin(9600);
+  nexInit();
+  unsigned char cmd0[] = "vis p0,0";
+  sendCommand(cmd0);
+  unsigned char cmd1[] = "vis g0,0";
+  sendCommand(cmd1);
+  dbSerialPrintln("setup done");
+  delay(1000);
+
+}
+
+void intToCharArray(unsigned char* numberArray, int numberInt)
+{ 
+  *(numberArray + 3) = '0' + (numberInt % 10);
+  numberInt /= 10;
+  *(numberArray + 2) = '0' + (numberInt % 10);
+  numberInt /= 10;
+  *(numberArray + 1) = '0' + (numberInt % 10);
+  numberInt /= 10;
+  *(numberArray + 0) = '0' + (numberInt % 10);
+}
+
+void addToInstruction(unsigned char *instruction, int instructionCursor, 
+                      unsigned char *add, int sizeOfAdd)
+{
+  for(int i = 0; i < sizeOfAdd; i++, instructionCursor++)
+    *(instruction + instructionCursor) = *(add + i);
+}
+
+void sendInstruction(unsigned char *command, int Xstart, int Ystart,
+                     int Xwidth, int Ywidth, unsigned char *color)
+{
+  unsigned char space[] = " ";
+  unsigned char comma[] = ",";
+
+  unsigned char *XstartArray = new unsigned char[4];
+  unsigned char *YstartArray = new unsigned char[4];
+  unsigned char *XwidthArray = new unsigned char[4];
+  unsigned char *YwidthArray = new unsigned char[4];
+  
+  intToCharArray(XstartArray, Xstart);
+  intToCharArray(YstartArray, Ystart);
+  intToCharArray(XwidthArray, Xwidth);
+  intToCharArray(YwidthArray, Ywidth);
+  
+  int instructionSize = sizeOf(command) + 16 + sizeOf(color)
+                        + sizeOf(space) + sizeOf(comma) * 4 + 1;
+
+  unsigned char *instruction = new unsigned char[instructionSize];
+
+  int instructionCursor = 0;
+  addToInstruction(instruction, instructionCursor, command, sizeOf(command));
+   
+  //for (int i = 0; i < sizeOf(command); i++) {
+  //  *(instruction + instructionCursor) = *(command + i);
+  //  instructionCursor++;
+  //}
+  *(instruction + instructionCursor) = *(space + 0);
+  instructionCursor++;
+  for (int i = 0; i < 4; i++) {
+    *(instruction + instructionCursor) = *(XstartArray + i);
+    instructionCursor++;
+  }
+  *(instruction + instructionCursor) = *(comma + 0);
+  instructionCursor++;
+  for (int i = 0; i < 4; i++) {
+    *(instruction + instructionCursor) = *(YstartArray + i);
+    instructionCursor++;
+  }
+  *(instruction + instructionCursor) = *(comma + 0);
+  instructionCursor++;
+  for (int i = 0; i < 4; i++) {
+    *(instruction + instructionCursor) = *(XwidthArray + i);
+    instructionCursor++;
+  }
+  *(instruction + instructionCursor) = *(comma + 0);
+  instructionCursor++;
+  for (int i = 0; i < 4; i++) {
+    *(instruction + instructionCursor) = *(YwidthArray + i);
+    instructionCursor++;
+  }
+  *(instruction + instructionCursor) = *(comma);
+  instructionCursor++;
+  for (int i = 0; i < sizeOf(color); i++) {
+    *(instruction + instructionCursor) = *(color + i);
+    instructionCursor++;
+  }
+  *(instruction + instructionCursor) = '\0';
+
+  for (int i = 0; i < instructionSize; i++) {
+    Serial.print(char(*(instruction + i)));
+  }
+  Serial.println();
+  sendCommand(instruction);
+  delete[] instruction;
+  delete[] XstartArray;
+  delete[] YstartArray;
+  delete[] XwidthArray;
+  delete[] YwidthArray;
+}
+
+int sizeOf(unsigned char *string)
+{
+  int size = 0;
+  for (int i = 0; string[i] != '\0'; i++)
+    size++;
+  return size;
+}
+
+void loop() {
+
+  unsigned char *cmd1 = "fill 0,0,240,400,BLACK";
+  sendCommand(cmd1);
+  delay(500);
+
+  unsigned char *color = "YELLOW";
+
+  sendInstruction("fill", 0, 0, 100, 50, "YELLOW");
+
+  delay(500);
+
+  Serial.flush();
+}
+

@@ -1,0 +1,132 @@
+#include <Servo.h>
+
+//Servo Defines
+/*********************************/
+#define PAN_SERVO 5
+#define TILT_SERVO 6
+
+#define panMax 180
+#define panRight 190
+#define panForward 90
+#define panLeft 0
+#define panMin 0
+
+#define tiltMax 155
+#define tiltForward 23
+#define tiltUp 112
+#define tiltMin 0
+/*********************************/
+
+//Funduio_Joystick Defines
+/*********************************/
+#define A 24
+#define B 25
+#define C 26
+#define D 27
+#define E 28
+#define F 29
+#define K 30
+#define X A1
+#define Y A2
+/*********************************/
+
+Servo panServo;
+Servo tiltServo;
+
+void setup() {
+  pinMode(PAN_SERVO, OUTPUT);
+  pinMode(TILT_SERVO, OUTPUT);
+
+  panServo.attach(PAN_SERVO);
+  tiltServo.attach(TILT_SERVO);
+
+  pinMode(A, INPUT);
+  pinMode(B, INPUT);
+  pinMode(C, INPUT);
+  pinMode(D, INPUT);
+  pinMode(E, INPUT);
+  pinMode(F, INPUT);
+  pinMode(K, INPUT);
+  pinMode(X, INPUT);
+  pinMode(Y, INPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  unsigned char *con;
+  readCon(con);
+
+  /* Serial.print("control: ");
+    Serial.print(+*(con + 8), BIN);
+    Serial.print(" -  ");
+    Serial.print(+*(con + 9), BIN);
+    Serial.print(" -  ");
+    for (int i = 7; i >= 0; i--) {
+     Serial.print(+*(con + i));
+     Serial.print(" ");
+     if (i == 4)
+       Serial.print(" -  ");
+    }
+    Serial.println();
+  */
+}
+
+void readCon(unsigned char * conPt)
+{
+  int conYint = analogRead(Y);
+  int conXint = analogRead(X);
+  int conA = digitalRead(A);
+  int conB = digitalRead(B);
+  int conC = digitalRead(C);
+  int conD = digitalRead(D);
+  int conE = digitalRead(E);
+  int conF = digitalRead(F);
+  int conK = digitalRead(K);
+
+  unsigned char conYchar[4] = {};
+  unsigned char conXchar[4] = {};
+  unsigned char conAtoD = 0x0;
+  unsigned char conEtoK = 0x0;
+
+  for (int i = 0; i < 4; i++) {
+    conYchar[i] = conYint % 10;
+    conYint /= 10;
+    conXchar[i] = conXint % 10;
+    conXint /= 10;
+  }
+  conAtoD |= (conA << 0);
+  conAtoD |= (conB << 1);
+  conAtoD |= (conC << 2);
+  conAtoD |= (conD << 3);
+  conEtoK |= (conE << 0);
+  conEtoK |= (conF << 1);
+  conEtoK |= (conK << 2);
+  conEtoK |= (0 << 3);
+
+  unsigned char con[10] = {};
+  for (int i = 0; i < 8; i++) {
+    if (i < 4)
+      con[i] = conXchar[i];
+    else if (i >= 4)
+      con[i] = conYchar[i - 4];
+  }
+  con[8] = conAtoD;
+  con[9] = conEtoK;
+
+  Serial.print(con[9], BIN);
+  Serial.print(" -  ");
+  Serial.print(con[8], BIN);
+  Serial.print(" -  ");
+  for (int i = 7; i >= 0; i--) {
+    Serial.print(+con[i]);
+    Serial.print(" ");
+    if (i == 4)
+      Serial.print(" -  ");
+  }
+  Serial.println();
+  delay(100);
+
+  conPt = con;
+}
+

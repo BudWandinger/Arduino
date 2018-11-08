@@ -1,0 +1,24 @@
+#include <SPI.h>
+#include "RF_COMM.h"
+#include "PS2_CONTROL.h"
+
+unsigned char adr[5] = {0x34, 0x43, 0x10, 0x10, 0x01};
+RF_COMM rf(5, adr, 9);
+
+PS2_CONTROL con(3);
+
+void setup() {
+  SPI.begin();
+  rf.initialize(2, 8, 9);
+  rf.TX_Mode();
+  con.initializeController();
+}
+
+void loop() {
+  con.readController();
+  con.printBuffer();
+  rf.set_TX_BUFFER(con.getBuffer());
+  rf.TX();
+  rf.clearBuffer();
+  con.clearBuffer();
+}

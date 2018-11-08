@@ -1,0 +1,97 @@
+const uint8_t NOP = 0x00;          // No Op
+
+const uint8_t SWRESET = 0x01;      // Software Reset
+const uint8_t RDDID = 0x04;        // Read Display ID      
+const uint8_t RDDST = 0x09;        // Read Display Status
+const uint8_t RDDPM = 0x0A;        // Read Display Power
+const uint8_t RDDMADCTL = 0x0B;    // Read Display
+const uint8_t RDDCOLMOD = 0x0C;    // Read Display Pixel
+const uint8_t RDDIM = 0x0D;        // Read Display Image
+const uint8_t RDDSM = 0x0E;        // Read Display Signal
+
+const uint8_t SLPIN = 0x10;        // Sleep In & Booster Off
+const uint8_t SLPOUT = 0x11;       // Sleep out & Booster Off
+const uint8_t PTLON = 0x12;        // Partial Mode On
+const uint8_t NORON = 0x13;        // Partial Off (Normal)
+
+const uint8_t INVOFF = 0x20;       // Display Inversion Off
+const uint8_t INVON = 0x21;        // Display Inversion On
+const uint8_t GAMSET = 0x26;       // Gamma Curve Select
+const uint8_t DISPOFF = 0x28;       // Display Off
+const uint8_t DISPON = 0x29;       // Display On
+const uint8_t CASET = 0x2A;        // Column Address Set
+const uint8_t RASET = 0x2B;        // Row Address Set
+const uint8_t RAMWR = 0x2C;        // Memory Write
+const uint8_t RGBSET = 0x2D;       // RGB Write
+const uint8_t RAMRD = 0x2E;        // Memory Read
+
+const uint8_t PTLAR = 0x30;        // Partial start/end Address
+const uint8_t TEOFF = 0x34;        // Tearing Effect Line Off
+const uint8_t TEON = 0x35;         // Tearing Effect Mode Set and On
+const uint8_t MADCTL = 0x36;       // Memory Data Access Control
+const uint8_t IDMOFF = 0x38;       // Idle Mode Off
+const uint8_t IDMON = 0x39;        // Idle Mode On
+const uint8_t COLMOD = 0x3A;       // Interface Pixel Format
+
+const uint8_t RDID1 = 0xDA;        // Read Manufacturer ID
+const uint8_t RDID2 = 0xDB;        // Read Module/Driver Version ID
+const uint8_t RDID3 = 0xDC;        // Read Module/Driver ID
+
+const uint8_t IPF12 = 0x03;        // 12-bit Pixel Format, used with COLMOD CMD
+const uint8_t IPF16 = 0x05;        // 16-bit Pixel Format, used with COLMOD CMD
+const uint8_t IPF18 = 0x06;        // 18-bit Pixel Format, used with COLMOD CMD
+
+#include<Wire.h>
+#include<SPI.h>
+
+#define DC 13
+#define RESET 12
+#define CS 11
+
+#define DATA HIGH
+#define CMD LOW
+
+void setup() {
+  pinMode(DC, OUTPUT);
+  pinMode(RESET, OUTPUT);
+  pinMode(CS, OUTPUT);
+
+  digitalWrite(RESET, HIGH);
+  digitalWrite(CS, HIGH);
+
+
+  
+  SPI.begin();
+
+  delay(500);
+  digitalWrite(DC, CMD);
+  digitalWrite(CS, LOW);
+  
+  SPI.transfer(DISPOFF);
+  
+  digitalWrite(CS, HIGH);
+
+  SPI.end();
+  delay(500);
+/*
+  Wire.begin();
+
+  delay(500);
+  int i = 0;
+  digitalWrite(DC, CMD);
+  digitalWrite(CS, LOW);
+  
+  Wire.beginTransmission(i);
+  Wire.write(DISPOFF);
+  Wire.endTransmission();
+  
+  digitalWrite(CS, HIGH);
+
+  delay(500);
+*/
+
+}
+
+void loop() {
+
+}

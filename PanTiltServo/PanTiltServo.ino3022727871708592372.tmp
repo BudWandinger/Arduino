@@ -1,0 +1,29 @@
+#include <Servo.h>
+
+#define PAN_SERVO 5
+#define TILT_SERVO 6
+
+Servo panServo;
+Servo tiltServo;
+
+void setup() {
+  pinMode(PAN_SERVO, OUTPUT);
+  pinMode(TILT_SERVO, OUTPUT);
+ 
+  panServo.attach(PAN_SERVO);
+  tiltServo.attach(TILT_SERVO);
+}
+
+void loop() {
+  tiltServo.write(160);
+  /*for(int i = 0; i <= 180; i++){
+    //panServo.write(i);
+    //tiltServo.write(i);
+    delay(50);
+  }
+  for(int i = 180; i >= 0; i--){
+    //panServo.write(i);
+    //tiltServo.write(i);    
+    delay(50);
+  }*/
+}

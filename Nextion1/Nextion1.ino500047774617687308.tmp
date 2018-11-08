@@ -1,0 +1,123 @@
+#include "Nextion.h"
+
+void setup() {
+  Serial.begin(9600);
+  nexInit();
+  unsigned char cmd0[] = "vis p0,0";
+  sendCommand(cmd0);
+  unsigned char cmd1[] = "vis g0,0";
+  sendCommand(cmd1);
+  dbSerialPrintln("setup done");
+  delay(1000);
+
+}
+
+void loop() {
+
+  unsigned char cmd0[] = "fill 0,0,240,400,BLACK";
+  sendCommand(cmd0);
+  delay(500);
+  unsigned char *cmd1 = "fill 0,0,240,400,WHITE";
+
+  sendCommand(cmd1);
+  delete[] cmd1;
+  delay(500);
+
+
+/*  String instruction = String("fill 120,200,10,10,BLACK");
+  unsigned char cmd1[instruction.length()];
+  for(int i = 0; i < instruction.length(); i++){
+    cmd1[i] = instruction.charAt(i);
+    Serial.println(instruction.charAt(i));
+  }
+  //instruction.toCharArray(cmd1, instruction.length());
+  sendCommand(cmd1);
+  */
+/*
+  for(int w = 0; w < 240; w++){
+    String fill = ("fill ");
+    String width = String(w);
+    String rest = String(",200,10,10,BLACK");
+    String instruction = fill + width + rest;
+    unsigned char cmd[instruction.length()];
+    instruction.toCharArray(cmd, instruction.length());
+    Serial.println(instruction);
+    sendCommand(cmd);
+  }
+  //unsigned char cmd1[] = "fill 0,0,1,1,BLACK";
+  //sendCommand(cmd1);
+
+  delay(5000);
+*/
+  
+  /*
+  for(int w = 0; w < 240; w++){
+    for(int h = 0; h < 400; h++){
+      String instruction = String("fill ");
+      String width = String(w);
+      instruction += width;
+      instruction += ",";
+      String hight = String(h);
+      instruction += hight;
+      instruction += ",100,100,BLACK";
+      unsigned char cmd[instruction.length()];
+      instruction.toCharArray(cmd, instruction.length());
+      Serial.println(instruction);
+      sendCommand(cmd);
+    }
+  }
+  */
+
+/*
+  for (int r = 0; r < 256; r += 32) {
+    for (int g = 0; g < 256; g += 32) {
+      for (int b = 0; b < 256; b += 32) {
+        int color565 = int(r / 8) * 2048 + int(g / 4) * 32 + int(b / 8);
+
+        String instruction = String("fill 0,0,240,400,");
+        String color = String(color565);
+        String cmdString = instruction + color;
+        unsigned char cmdChar[cmdString.length()];
+        cmdString.toCharArray(cmdChar, cmdString.length());
+        //Serial.println(i);
+        //Serial.println(cmdString);
+        sendCommand(cmdChar);
+        //Serial.flush();
+        //delay(1000);
+        delay(100);
+      }
+    }
+  }
+*/  
+  /*
+    unsigned char cmd0[] = "fill 0,0,240,400,RED";
+    sendCommand(cmd0);
+    delay(1000);
+    unsigned char cmd1[] = "fill 0,0,240,400,BLUE";
+    sendCommand(cmd1);
+    delay(1000);
+    unsigned char cmd2[] = "fill 0,0,240,400,GRAY";
+    sendCommand(cmd2);
+    delay(1000);
+    unsigned char cmd3[] = "fill 0,0,240,400,BLACK";
+    sendCommand(cmd3);
+    delay(1000);
+    unsigned char cmd4[] = "fill 0,0,240,400,WHITE";
+    sendCommand(cmd4);
+    delay(1000);
+    unsigned char cmd5[] = "fill 0,0,240,400,GREEN";
+    sendCommand(cmd5);
+    delay(1000);
+    unsigned char cmd6[] = "fill 0,0,240,400,BROWN";
+    sendCommand(cmd6);
+    delay(1000);
+    unsigned char cmd7[] = "fill 0,0,240,400,YELLOW";
+    sendCommand(cmd7);
+    delay(1000);
+  */
+
+  Serial.flush();
+
+  //delay(1000);
+}
+

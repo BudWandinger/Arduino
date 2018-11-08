@@ -1,0 +1,296 @@
+#define ST7735_NOP       0x00    // No Op
+
+#define ST7735_SWRESET   0x01    // Software Reset
+#define ST7735_RDDID     0x04    // Read Display ID      
+#define ST7735_RDDST     0x09    // Read Display Status
+#define ST7735_RDDPM     0x0A    // Read Display Power
+#define ST7735_RDDMADCTL 0x0B    // Read Display
+#define ST7735_RDDCOLMOD 0x0C    // Read Display Pixel
+#define ST7735_RDDIM     0x0D    // Read Display Image
+#define ST7735_RDDSM     0x0E    // Read Display Signal
+
+#define ST7735_SLPIN     0x10    // Sleep In & Booster Off
+#define ST7735_SLPOUT    0x11    // Sleep out & Booster Off
+#define ST7735_PTLON     0x12    // Partial Mode On
+#define ST7735_NORON     0x13    // Partial Off (Normal)
+
+#define ST7735_INVOFF    0x20    // Display Inversion Off
+#define ST7735_INVON     0x21    // Display Inversion On
+#define ST7735_GAMSET    0x26    // Gamma Curve Select
+#define ST7735_DISPOFF   0x28    // Display Off
+#define ST7735_DISPON    0x29    // Display On
+#define ST7735_CASET     0x2A    // Column Address Set
+#define ST7735_RASET     0x2B    // Row Address Set
+#define ST7735_RAMWR     0x2C    // Memory Write
+#define ST7735_RGBSET    0x2D    // RGB Write
+#define ST7735_RAMRD     0x2E    // Memory Read
+
+#define ST7735_PTLAR     0x30    // Partial start/end Address
+#define ST7735_TEOFF     0x34    // Tearing Effect Line Off
+#define ST7735_TEON      0x35    // Tearing Effect Mode Set and On
+#define ST7735_MADCTL    0x36    // Memory Data Access Control
+#define ST7735_IDMOFF    0x38    // Idle Mode Off
+#define ST7735_IDMON     0x39    // Idle Mode On
+#define ST7735_COLMOD    0x3A    // Interface Pixel Format
+
+#define ST7735_RDID1     0xDA    // Read Manufacturer ID
+#define ST7735_RDID2     0xDB    // Read Module/Driver Version ID
+#define ST7735_RDID3     0xDC    // Read Module/Driver ID
+
+#define ST7735_IPF12     0x03    // 12-bit Pixel Format, used with COLMOD CMD
+#define ST7735_IPF16     0x05    // 16-bit Pixel Format, used with COLMOD CMD
+#define ST7735_IPF18     0x06    // 18-bit Pixel Format, used with COLMOD CMD
+
+#define ST7735_FRMCTR1   0xB1    // Set Frame Frequency In Normal Mode (Full Colors) 
+#define ST7735_FRMCTR2   0xB2    // Set Frame Frequency In Idle Mode (8-Colors)
+#define ST7735_FRMCTR3   0xB3    // Set Frame Frequency In Partial Mode + Full Colors
+#define ST7735_INVCTR    0xB4    // Display Inversion Mode Control
+
+#define ST7735_PWCTR1    0xC0    // Power Control Setting - Set GVDD Voltage
+#define ST7735_PWCTR2    0xC1    // Power Control Setting - Set VGH/VGL Voltage
+#define ST7735_PWCTR3    0xC2    // Set Current In OpAmp In Normal Mode (Full Colors)
+#define ST7735_PWCTR4    0xC3    // Set Current In OpAmp In Idle Mode (8-Colors)
+#define ST7735_PWCTR5    0xC4    // Set Current In OpAmp In Partial Mode + Full
+#define ST7735_VMCTR1    0xC5    // VCOM Voltage Control
+#define ST7735_VMOFCTR   0xC7    // Set VCOM Offset Control
+
+#define ST7735_WRID2     0xD1    // Set LCM Version Code, 7-bit
+#define ST7735_WRID3     0xD2    // Customer Project Code, 8-bit
+#define ST7735_NVCTR1    0xD9    // NVM Control Status
+#define ST7735_NVCTR2    0xDE    // NVM Read Command
+#define ST7735_NVCTR3    0xDF    // NVM Write Command
+
+#define ST7735_GMCTRP1  0xE0    // Set Gamma (+polarity)
+#define ST7735_GMCTRN1   0xE1    // Set Gamma (-polarity)
+
+
+// colors
+#define ST7735_BLACK     0x0000
+#define ST7735_BLUE      0x001F
+#define ST7735_RED       0xF800
+#define ST7735_GREEN     0x07E0
+#define ST7735_CYAN      0x07FF
+#define ST7735_MEGENTA   0xF81F
+#define ST7735_YELLOW    0xFFE0
+#define ST7735_WHITE     0xFFFF
+
+// MAD controls
+#define MADCTL_MY        0x80
+#define MADCTL_MX        0x40
+#define MADCTL_MV        0x20
+#define MADCTL_ML        0x10
+#define MADCTL_RGB       0x00
+#define MADCTL_BGR       0x08
+#define MADCTL_MH        0x04
+
+#include<Wire.h>
+#include<SPI.h>
+
+#define ST7735_DC_PIN 8
+#define ST7735_RESET_PIN 9
+#define ST7735_CS_PIN 10
+
+#define ST7735_DATA HIGH
+#define ST7735_CMD LOW
+
+//ST7735_SPISettings = SPISettings(8000000, MSBFIRST, SPI_MODE0);
+
+void setup() {
+  // Pin init
+  pinMode(ST7735_DC_PIN, OUTPUT);
+  pinMode(ST7735_RESET_PIN, OUTPUT);
+  pinMode(ST7735_CS_PIN, OUTPUT);
+  digitalWrite(ST7735_RESET_PIN, HIGH);
+  digitalWrite(ST7735_CS_PIN, HIGH);
+  SPI.begin();
+  delay(500);
+
+  //LCD init
+  digitalWrite(ST7735_CS_PIN, LOW);
+
+  digitalWrite(ST7735_RESET_PIN, LOW);
+  delay(500);
+  digitalWrite(ST7735_CS_PIN, HIGH);
+  delay(500);
+
+  writeCommand(ST7735_SWRESET);
+  delay(150);
+
+  writeCommand(ST7735_SLPOUT);
+  delay(500);
+
+  writeCommand(ST7735_FRMCTR1);
+  writeData(0x01);
+  writeData(0x2C);
+  writeData(0x2D);
+
+  writeCommand(ST7735_FRMCTR2);
+  writeData(0x01);
+  writeData(0x2C);
+  writeData(0x2D);
+
+  writeCommand(ST7735_FRMCTR3);
+  writeData(0x01);
+  writeData(0x2C);
+  writeData(0x2D);
+  writeData(0x01);
+  writeData(0x2C);
+  writeData(0x2D);
+
+  writeCommand(ST7735_INVCTR);
+  writeData(0x07);
+
+  writeCommand(ST7735_PWCTR1);
+  writeData(0xA2);
+  writeData(0x02);
+  writeData(0x84);
+
+  writeCommand(ST7735_PWCTR2);
+  writeData(0xC5);
+
+  writeCommand(ST7735_PWCTR3);
+  writeData(0x0A);
+  writeData(0x00);
+
+  writeCommand(ST7735_PWCTR4);
+  writeData(0x8A);
+  writeData(0x2A);
+
+  writeCommand(ST7735_PWCTR5);
+  writeData(0x8A);
+  writeData(0xEE);
+
+  writeCommand(ST7735_VMCTR1);
+  writeData(0x0E);
+
+  writeCommand(ST7735_INVOFF);
+
+  writeCommand(ST7735_MADCTL);
+  writeData(0xC8);
+
+  writeCommand(ST7735_COLMOD);
+  writeData(0x05);
+
+  writeCommand(ST7735_CASET);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x7F);
+
+  writeCommand(ST7735_RASET);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x9F);
+
+  writeCommand(ST7735_GMCTRP1);
+  writeData(0x02);
+  writeData(0x1C);
+  writeData(0x07);
+  writeData(0x12);
+  writeData(0x37);
+  writeData(0x32);
+  writeData(0x29);
+  writeData(0x2D);
+  writeData(0x29);
+  writeData(0x25);
+  writeData(0x2B);
+  writeData(0x39);
+  writeData(0x00);
+  writeData(0x01);
+  writeData(0x03);
+  writeData(0x10);
+
+  writeCommand(ST7735_GMCTRN1);
+  writeData(0x03);
+  writeData(0x1D);
+  writeData(0x07);
+  writeData(0x06);
+  writeData(0x2E);
+  writeData(0x2C);
+  writeData(0x29);
+  writeData(0x2D);
+  writeData(0x2E);
+  writeData(0x2E);
+  writeData(0x37);
+  writeData(0x3F);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x02);
+  writeData(0x10);
+
+  writeCommand(ST7735_NORON);
+  delay(10);
+
+  writeCommand(ST7735_DISPON);
+  delay(100);
+
+  writeCommand(ST7735_MADCTL);
+  writeData(0xC0);
+
+  // sets rotation
+  writeCommand(ST7735_MADCTL);
+  writeData(MADCTL_MX | MADCTL_MY | MADCTL_RGB);
+}
+
+void loop() {
+  writeCommand(ST7735_CASET);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x0F);
+
+  writeCommand(ST7735_RASET);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x00);
+  writeData(0x0F);
+
+  writeCommand(ST7735_RAMWR);
+
+/*
+  uint8_t color = ST7735_BLUE;
+  uint8_t hi = color >> 8;
+  uint8_t lo = color;
+
+  SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+  digitalWrite(ST7735_DC_PIN, HIGH);
+  digitalWrite(ST7735_CS_PIN, LOW);
+
+  for (int y = 50; y > 0; y--) {
+    for (int x = 50; x > 0; x--) {
+      SPI.transfer(hi);
+      SPI.transfer(lo);
+    }
+  }
+  SPI.endTransaction()
+*/
+
+  writeCommand(ST7735_INVON);
+  Serial.begin(9600);
+  Serial.println("DONE...");
+  Serial.end();
+  
+  delay(5000);
+}
+
+void writeCommand(uint8_t cmd)
+{
+  SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+  digitalWrite(ST7735_DC_PIN, LOW);
+  digitalWrite(ST7735_CS_PIN, LOW);
+  SPI.transfer(cmd);
+  digitalWrite(ST7735_CS_PIN, HIGH);
+  SPI.endTransaction();
+}
+
+void writeData(uint8_t data)
+{
+  SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+  digitalWrite(ST7735_DC_PIN, HIGH);
+  digitalWrite(ST7735_CS_PIN, LOW);
+  SPI.transfer(data);
+  digitalWrite(ST7735_CS_PIN, HIGH);
+  SPI.endTransaction();
+}
+

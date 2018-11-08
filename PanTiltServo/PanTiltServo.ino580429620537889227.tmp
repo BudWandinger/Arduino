@@ -1,0 +1,43 @@
+#include <Servo.h>
+
+#define PAN_SERVO 5
+#define TILT_SERVO 6
+
+#define panMax 180
+#define panMid 90
+#define panMin 0
+
+#define tiltMax 155
+#define tiltStraightAhead 35
+#define tiltMin 0
+
+Servo panServo;
+Servo tiltServo;
+
+
+void setup() {
+  pinMode(PAN_SERVO, OUTPUT);
+  pinMode(TILT_SERVO, OUTPUT);
+ 
+  panServo.attach(PAN_SERVO);
+  tiltServo.attach(TILT_SERVO);
+}
+
+void loop() {
+  tiltServo.write(tiltMin);
+  delay(800);
+  tiltServo.write(tiltStraightAhead);
+  delay(800);
+  tiltServo.write(tiltMax);
+  delay(800);
+  /*for(int i = 0; i <= 180; i++){
+    //panServo.write(i);
+    //tiltServo.write(i);
+    delay(50);
+  }
+  for(int i = 180; i >= 0; i--){
+    //panServo.write(i);
+    //tiltServo.write(i);    
+    delay(50);
+  }*/
+}
