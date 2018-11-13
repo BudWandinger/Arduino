@@ -2,14 +2,14 @@
 #include <MIDIUSB.h>
 
 #define RANGE_SENSOR_PIN  (uint8_t)A0
-#define RANGE_ARRAY_SIZE  (uint16_t)100
+#define RANGE_ARRAY_SIZE  (uint8_t)100
 
-int rangeArray[RANGE_ARRAY_SIZE];
-int rangeArrayIndex = 0;
+uint8_t rangeArray[RANGE_ARRAY_SIZE];
+uint8_t rangeArrayIndex = 0;
 
 void setup() {
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.print("Initializing Range Sensor...");
   
   pinMode(RANGE_SENSOR_PIN, INPUT);
@@ -18,7 +18,8 @@ void setup() {
   while(rangeArrayIndex < RANGE_ARRAY_SIZE)
   {
     delay(50);
-    rangeArray[rangeArrayIndex] = analogRead(RANGE_SENSOR_PIN);
+    uint16_t unscaledRange = (uint16_t)analogRead(RANGE_SENSOR_PIN);
+    rangeArray[rangeArrayIndex] = scaleRange(unscaledRange);
     rangeArrayIndex++;
   }
 
@@ -26,9 +27,14 @@ void setup() {
 }
 
 void loop() {
+
+  /* used to determin if a new range must be send via MIDI */
+  static uint8_t lastRange = 0;
   
+  /* delay required for max frequency of range sensor = 50ms */
   delay(50);
 
+  /* progress rangeArrayIndex or reset if index is at its max */
   if(rangeArrayIndex >= RANGE_ARRAY_SIZE)
   {
     rangeArrayIndex = 0;
@@ -37,35 +43,41 @@ void loop() {
   {
     rangeArrayIndex++;
   }
-  rangeArray[rangeArrayIndex] = analogRead(RANGE_SENSOR_PIN);
 
-  int filteredRange = 0;
-  for(int i = 0; i < RANGE_ARRAY_SIZE; i++)
+  /* read data from range sensor, scale it, and add it to the rangeArray */
+  uint16_t unscaledRange = (uint16_t)analogRead(RANGE_SENSOR_PIN);
+  rangeArray[rangeArrayIndex] = scaleRange(unscaledRange);
+
+  /* calculate the average of the rangeArray */
+  uint16_t rangeArraySum = 0;
+  for(uint8_t i = 0; i < RANGE_ARRAY_SIZE; i++)
   {
-    filteredRange += rangeArray[i];
+    rangeArraySum += rangeArray[i];
   }
-  filteredRange /= RANGE_ARRAY_SIZE;
+  uint8_t filteredRange = rangeArraySum / RANGE_ARRAY_SIZE;
 
   Serial.print("Filtered Range: " );
   Serial.println(filteredRange);
 
-  if(filteredRange > 127)
+  /* if filteredRange is new, send the new value via MIDI and update lastRange */
+  if(filteredRange != lastRange)
   {
-    filteredRange = 127;
+    controlChange(0, 48, filteredRange); // chanel 1, note 48 (middle c), velocity 127
+    MidiUSB.flush();
+
+    lastRange = filteredRange;
   }
-  
-  controlChange(0, 48, filteredRange); // chanel 1, note 48 (middle c), velocity 127
-  MidiUSB.flush();
-  //delay(1000);
-  
-  //noteOff(0, 48, 0); // chanel 1, note 48 (middle c), velocity 127
-  //MidiUSB.flush();
-  //delay(1000);
 
 }
 
+uint8_t scaleRange(uint16_t unscaledRange_)
+{
+  uint8_t scaledRange = ( (unscaledRange_ / 1023) * 127 ) ;
+  return scaledRange;
+}
 
-void controlChange(byte channel, byte control, byte value) {
+void controlChange(byte channel, byte control, byte value) 
+{
   midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
   MidiUSB.sendMIDI(event);
 }
