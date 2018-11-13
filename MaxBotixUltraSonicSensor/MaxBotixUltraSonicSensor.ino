@@ -70,6 +70,7 @@ void loop() {
 
 }
 
+/* takes a range value from 0 - 1023 and scales it to a value from 0 -127 */
 uint8_t scaleRange(uint16_t unscaledRange_)
 {
   uint8_t scaledRange = ( (unscaledRange_ / 1023) * 127 ) ;
