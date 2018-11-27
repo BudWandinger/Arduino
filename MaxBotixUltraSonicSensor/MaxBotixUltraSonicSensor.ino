@@ -7,11 +7,11 @@
 /* constants */
 #define RANGE_SENSOR_PIN            (uint8_t)A0       /* the physical pin connected to the range sensor */
 #define MOTION_SENSOR_PIN           (uint8_t)2        /* the physical pin connected to thje range sensor */
-#define RANGE_ARRAY_SIZE            (uint8_t)50       /* the size of the filtering array for the renge sensor */
-#define NUM_REGULAR_EVENTS          (uint8_t)6        /* the number of unique regular events that can be trigered by the motion sensor */
+#define RANGE_ARRAY_SIZE            (uint8_t)20       /* the size of the filtering array for the renge sensor */
+#define NUM_REGULAR_EVENTS          (uint8_t)7        /* the number of unique regular events that can be trigered by the motion sensor */
 #define NUM_SPECIAL_EVENTS          (uint8_t)7        /* the number of unique special events that can be trigered by the range sensor */
-#define RANGE_SENSOR_TRIGER_VALUE   (uint8_t)30       /* the range at which a special event will be triggered */
-#define MOTION_TRIGER_TIMER_MAX     (uint16_t)1000   /* the motion trigger max timer in ms */
+#define RANGE_SENSOR_TRIGER_VALUE   (uint8_t)95       /* the range at which a special event will be triggered */
+#define MOTION_TRIGER_TIMER_MAX     (uint16_t)120000   /* the motion trigger max timer in ms */
 
 #ifdef SERIAL_MONITOR
 #define SERIAL_BAUD   (uint16_t)115200
