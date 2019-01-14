@@ -1,36 +1,40 @@
-
 #include <MIDIUSB.h>
 
 /* configurations */
-#define SERIAL_MONITOR  (bool)true
+#define SERIAL_MONITOR
 
 /* constants */
 #define RANGE_SENSOR_PIN            (uint8_t)A0       /* the physical pin connected to the range sensor */
 #define MOTION_SENSOR_PIN           (uint8_t)2        /* the physical pin connected to thje range sensor */
-#define RANGE_ARRAY_SIZE            (uint8_t)20       /* the size of the filtering array for the renge sensor */
-#define NUM_REGULAR_EVENTS          (uint8_t)7        /* the number of unique regular events that can be trigered by the motion sensor */
-#define NUM_SPECIAL_EVENTS          (uint8_t)7        /* the number of unique special events that can be trigered by the range sensor */
+#define RANGE_ARRAY_SIZE            (uint8_t)40       /* the size of the filtering array for the renge sensor */
+#define NUM_REGULAR_EVENTS          (uint8_t)1        /* the number of unique regular events that can be trigered by the motion sensor */
+#define NUM_SPECIAL_EVENTS          (uint8_t)1        /* the number of unique special events that can be trigered by the range sensor */
 #define RANGE_SENSOR_TRIGER_VALUE   (uint8_t)95       /* the range at which a special event will be triggered */
-#define MOTION_TRIGER_TIMER_MAX     (uint16_t)120000   /* the motion trigger max timer in ms */
+#define MOTION_TRIGER_TIMER_MAX     (uint16_t)120000  /* the motion trigger max timer in ms */
+#define MINIMUM_MIDI_FREQUENCY_MS   (uint32_t)100     /* the minimum time between MIDI messages in milliseconds */
+#define MAXIMUM_MIDI_FREQUENCY_MS   (uint32_t)1000000   /* the maximum time between MIDI messages in milliseconds */
 
 #ifdef SERIAL_MONITOR
 #define SERIAL_BAUD   (uint16_t)115200
 #endif /* ifdef SERIAL_MONITOR */
 
 /* global variable */
-uint8_t G_rangeArray[RANGE_ARRAY_SIZE];
-uint8_t G_rangeArrayIndex;
-uint8_t G_filteredRange;
+uint8_t  static G_rangeArray[RANGE_ARRAY_SIZE];
+uint8_t  static G_rangeArrayIndex;
+uint8_t  static G_filteredRange;
+uint32_t static G_lastTime = 0; /* This variable must be updated every time a Midi message is sent */
 
-/* function definitions */
+/* function prototypes */
 void initializeRangeArray(void);
 void updateRangeArray(void);
 void updateRange(void);
 bool rangeSensorTriger(void);
 bool motionSensorTriger(void);
 void controlChange(byte channel, byte control, byte value);
+uint32_t calcDeltaTime(void);
 
-void setup() {
+void setup()
+{
 
   /* initialize the global variables */
   G_rangeArrayIndex = 0;
@@ -57,8 +61,8 @@ void setup() {
 
 }
 
-void loop() {
-
+void loop()
+{
   /* initialize both sensor triggers to false */
   static bool motionTrigerFlag = false;
   static bool rangeTrigerFlag = false;
@@ -182,7 +186,7 @@ void loop() {
     if (rangeTrigerFlag == true)
     {
       /* only send the event over MIDI if it is a new event, this reduces the MIDI bandwidth used */
-      if (currentSpecialEvent + NUM_REGULAR_EVENTS + 1!= lastSentEvent)
+      if (currentSpecialEvent + NUM_REGULAR_EVENTS + 1 != lastSentEvent)
       {
         /* send the event number on chanel 1 (0) with maximum velocity (127) */
         controlChange(0, currentSpecialEvent + NUM_REGULAR_EVENTS + 1, 127);
@@ -209,11 +213,28 @@ void loop() {
   /* if no the motionTrigerFlag is not set, send the default state over MIDI */
   else
   {
-    /* send the default event number (0) on chanel 1 (0) with maximum velocity (127) */
+    if(lastSentEvent != 0)
+    {
+      /* send the default event number (0) on chanel 1 (0) with maximum velocity (127) */
+      controlChange(0, 0, 127);
+      MidiUSB.flush();
+
+      /* update the lastSentEvent variable with the event that was just sent */
+      lastSentEvent = 0;
+    }
+  }
+
+  /* if more time has past than the MAXIMUM_MIDI_FREQUENCY_MS, resend the last sent event to ensure
+     connection betwwen midi device and midi reciever stays alive*/
+  if (calcDeltaTime() > MAXIMUM_MIDI_FREQUENCY_MS)
+  {
+    #ifdef SERIAL_MONITOR
+      Serial.println("MAXIMUM_MIDI_FREQUENCY_MS Trigger");
+    #endif
+    
     controlChange(0, 0, 127);
     MidiUSB.flush();
 
-    /* update the lastSentEvent variable with the event that was just sent */
     lastSentEvent = 0;
   }
 
@@ -223,6 +244,26 @@ void loop() {
   Serial.println();
 #endif /*ifdef SERIAL_MONITOR */
 
+}
+
+/*
+   Calculates and returns the diffence in milliseconds between the G_lastTime variable and the current time.
+*/
+uint32_t calcDeltaTime(void)
+{
+  uint32_t deltaTime;
+  uint32_t thisTime = millis();
+
+  if (thisTime >= G_lastTime)
+  {
+    deltaTime = thisTime - G_lastTime;
+  }
+  else
+  {
+    deltaTime = thisTime + (0xFFFFFFFFFFFFFFFF - G_lastTime);
+  }
+
+  return deltaTime;
 }
 
 /*
@@ -308,10 +349,22 @@ bool motionSensorTriger(void)
 }
 
 /*
-   Sends midi comands.
+   Sends midi commands and updates the G_lastTime variable to track at what time the last Midi message
+   was sent.
 */
 void controlChange(byte channel, byte control, byte value)
 {
+  /* wait for the minimum time between MIDI messages to pass before sending the new message */
+  while (calcDeltaTime() < MINIMUM_MIDI_FREQUENCY_MS);
+
+  /* send the new MIDI message */
   midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
   MidiUSB.sendMIDI(event);
+
+  #ifdef SERIAL_MONITOR
+    Serial.println("**** MIDI MESSAGE SENT ****");
+  #endif
+  
+  /* update the global timer */
+  G_lastTime = millis();
 }
