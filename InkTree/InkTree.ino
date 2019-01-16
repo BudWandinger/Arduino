@@ -2,7 +2,7 @@
 
 /* CONFIGURATION */
 //#define SERIAL_MONITOR
-#define STATE_MACHINE_DEBUG
+//#define STATE_MACHINE_DEBUG
 //#define MIDI_MESSAGE_DEBUG
 //#define TIMER_DEBUG
 //#define RANGE_SENSOR_DEBUG
@@ -11,11 +11,11 @@
 /* CONSTANTS */
 #define RANGE_SENSOR_PIN              (uint8_t)A0
 #define MOTION_SENSOR_PIN             (uint8_t)2
-#define RANGE_ARRAY_SIZE              (uint8_t)10
+#define RANGE_ARRAY_SIZE              (uint8_t)80
 #define RANGE_UPDATE_INTERVAL         (uint8_t)50
-#define RANGE_SENSOR_TRIGGER_ON       (uint16_t)300
-#define RANGE_SENSOR_TRIGGER_OFF      (uint16_t)200
-#define SENSOR_TRIGGER_TIMER          (uint32_t)120000  /* 2 minutes */
+#define RANGE_SENSOR_TRIGGER_ON       (uint16_t)100
+#define RANGE_SENSOR_TRIGGER_OFF      (uint16_t)100
+#define SENSOR_TRIGGER_TIMER          (uint32_t)12000 /* 2 minutes */
 #define MINIMUM_MIDI_INTERVAL         (uint8_t)100
 #define MAXIMUM_MIDI_INTERVAL         (uint32_t)6000000   /* 10 minutes */
 #if defined(SERIAL_MONITOR) || defined(STATE_MACHINE_DEBUG) || defined(MIDI_MESSAGE_DEBUG) || defined(TIMER_DEBUG)
@@ -262,7 +262,7 @@ static bool rangeSensorTrigger(void)
 
   if (rangeSensorTriggered == false)
   {
-    if (range >= RANGE_SENSOR_TRIGGER_ON)
+    if (range <= RANGE_SENSOR_TRIGGER_ON)
     {
       #if defined(RANGE_SENSOR_DEBUG)
         Serial.println("*** RANGE SENSOR TRIGGER: ON ***");
@@ -279,7 +279,7 @@ static bool rangeSensorTrigger(void)
   }
   else if (rangeSensorTriggered == true)
   {
-    if (range >= RANGE_SENSOR_TRIGGER_OFF)
+    if (range <= RANGE_SENSOR_TRIGGER_OFF)
     {
       #if defined(RANGE_SENSOR_DEBUG)
         Serial.println("*** RANGE SENSOR TRIGGER ***");
